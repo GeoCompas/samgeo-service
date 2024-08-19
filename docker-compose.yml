@@ -1,0 +1,9 @@
+services:
+  gdal:
+    image: geocompas/cattle-fields-highlights
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./drive:/data/drive
+
