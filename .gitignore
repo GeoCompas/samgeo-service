@@ -1,6 +1,8 @@
 drive
 *.csv
 *.tif
+*.pyc
 public/
 module/
 data/
+.DS_Store

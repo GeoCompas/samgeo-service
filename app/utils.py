@@ -2,9 +2,6 @@ import os
 import time
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:
-    """
-    List and group all files in the 'public' directory by their base name
-    """
     if not os.path.exists(public_dir):
         return {"error": "The public directory does not exist."}
     
@@ -12,18 +9,21 @@ def group_files_by_base_name(public_dir: str, base_url: str) -> list:
 
     for file in os.listdir(public_dir):
         modification_time = os.path.getmtime(os.path.join(public_dir, file))
-        base_name = "_".join(file.split("_")[:-1])
+        base_name, _ = os.path.splitext(file)
         file_url = f"{base_url}/{file}"
+        
         if base_name not in file_groups:
             file_groups[base_name] = {
                 "base_name": base_name,
                 "files": [],
                 "modification_time": modification_time
             }
+        
         file_groups[base_name]["files"].append({
             "file_name": file,
             "url": file_url
         })
+        
         if modification_time > file_groups[base_name]["modification_time"]:
             file_groups[base_name]["modification_time"] = modification_time
 
