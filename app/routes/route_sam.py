@@ -1,7 +1,8 @@
 import asyncio
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from utils_sam import detect_segment_objects, check_gpu, detect_segment_point_input_prompts
+from utils_sam import detect_segment_objects, detect_segment_point_input_prompts
+from utils import check_gpu
 from schemas import SegmentRequest
 
 router = APIRouter()
