@@ -7,3 +7,4 @@ module/
 data/
 .DS_Store
 *.pem
+*.gpkg
