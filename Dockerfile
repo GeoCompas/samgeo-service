@@ -10,10 +10,16 @@ RUN apt-get update && apt-get install -y \
     libgles2-mesa \
     libopengl0 && \
     rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gdal-bin libgdal-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
+ENV C_INCLUDE_PATH=/usr/include/gdal
 
 RUN wget https://bootstrap.pypa.io/get-pip.py && python3.9 get-pip.py
 RUN pip3.9 install --no-cache-dir --root-user-action=ignore torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-WORKDIR /app
+RUN pip3.9 install numpy=<2.0
+RUN pip3.9 install --no-cache-dir GDALWORKDIR /app
 
 COPY ./app/requirements.txt /app/requirements.txt
 RUN pip3.9 install --no-cache-dir -r /app/requirements.txt
