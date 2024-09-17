@@ -3,15 +3,25 @@ from samgeo import SamGeo, tms_to_geotiff
 import geopandas as gpd
 import logging
 import json
+import torch
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 sam = SamGeo(
-    model_type="vit_h",
     checkpoint="sam_vit_h_4b8939.pth",
+    model_type='vit_h',
+    device=device,
+    erosion_kernel=(3, 3),
+    mask_multiplier=255,
     sam_kwargs=None,
 )
 
-if not os.path.exists('public'):
-    os.makedirs('public')
+def check_gpu():
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        return {"gpu": True, "device": torch.cuda.get_device_name(0)}
+    else:
+        return {"gpu": False, "message": "No GPU available, using CPU"}
+
 
 def detect_all_objects(
     bbox, zoom, id, project

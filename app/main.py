@@ -6,6 +6,9 @@ from routes.files import router as files_router
 from routes.segment import router as segment_router
 
 app = FastAPI()
+if not os.path.exists('public'):
+    os.makedirs('public')
+    
 app.mount("/files", StaticFiles(directory="public"), name="public")
 logging.basicConfig(level=logging.INFO)
 app.include_router(files_router, prefix="/browse")

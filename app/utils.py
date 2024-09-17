@@ -34,3 +34,21 @@ def group_files_by_base_name(public_dir: str, base_url: str) -> list:
         group["modification_time"] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(group["modification_time"]))
 
     return sorted_grouped_files
+
+# Endpoint to check if SamGeo is using GPU
+@app.get("/gpu-check")
+def check_gpu():
+    # Initialize SamGeo model
+    sam = SamGeo(
+        model_type="vit_h",
+        checkpoint="sam_vit_h_4b8939.pth",
+        sam_kwargs=None,
+    )
+
+    # Check if GPU is available and being used
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        sam.model.to(device)  # Ensure the model is moved to GPU
+        return {"gpu": True, "device": torch.cuda.get_device_name(0)}
+    else:
+        return {"gpu": False, "message": "No GPU available, using CPU"}

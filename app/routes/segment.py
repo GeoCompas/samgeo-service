@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Tuple
-from utils_detection import detect_all_objects
+from utils_detection import detect_all_objects,check_gpu
 
 router = APIRouter()
 
@@ -16,6 +16,11 @@ class SegmentRequest(BaseModel):
     zoom: float
     id: str
     project: str
+
+@router.get("/gpu-check")
+async def gpu_check():
+    result = await asyncio.to_thread(check_gpu)
+    return result
 
 @router.post("/segment")
 async def segment_image(request: SegmentRequest):

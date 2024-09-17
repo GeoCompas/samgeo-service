@@ -1,4 +1,4 @@
-fastapi==0.95.2
+fastapi
 uvicorn==0.22.0
 # samgeo==0.2.2
 # leafmap==0.11.4
@@ -8,4 +8,6 @@ shapely==2.0.1
 fiona==1.9.4
 pyproj==3.6.0
 rtree==1.0.1
-pydantic==1.10.7
+typing-extensions>=4.10.0
+maplibre>=0.2.6
+shiny>=0.7.0
