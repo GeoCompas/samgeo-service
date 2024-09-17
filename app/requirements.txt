@@ -1,8 +1,6 @@
 fastapi
 uvicorn==0.22.0
-# samgeo==0.2.2
-# leafmap==0.11.4
-# segment-geospatial==0.1.6
+segment-geospatial
 geopandas==0.14.0
 shapely==2.0.1
 fiona==1.9.4

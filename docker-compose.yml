@@ -1,7 +1,7 @@
 services:
-  dashboard:
+  samgeo:
     platform: linux/amd64
-    image: geocompas/geosam-service
+    image: geocompas/samgeo-service
     build:
       context: .
       dockerfile: Dockerfile
