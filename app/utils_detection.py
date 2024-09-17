@@ -27,13 +27,18 @@ def detect_all_objects(
     mask_file_name = f"mask_{bbox_str}_zoom{zoom_str}_{project_str}.tif"
     output_image_name = f"satellite_image_{bbox_str}_zoom{zoom_str}_{project_str}.tif"
     gpkg_file_name = f"segment_{bbox_str}_zoom{zoom_str}_{project_str}.gpkg"
+    geojson_file_name = f"segment_{bbox_str}_zoom{zoom_str}_{project_str}.geojson"
+
     public_dir = "public"
     output_image_path = os.path.join(public_dir, output_image_name)
     mask_file_path = os.path.join(public_dir, mask_file_name)
     gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
+    geojson_file_path = os.path.join(public_dir, geojson_file_name)
+
     logging.info(f"Output Image Path: {output_image_path}")
     logging.info(f"Mask File Path: {mask_file_path}")
     logging.info(f"GeoPackage File Path: {gpkg_file_path}")
+    logging.info(f"Geojson File Path: {geojson_file_path}")
 
     try:
         # Check if the satellite image already exists
@@ -50,7 +55,9 @@ def detect_all_objects(
         logging.info(f"Converting segmentation results to GeoPackage")
         sam.tiff_to_gpkg(mask_file_path, gpkg_file_path, simplify_tolerance=None)
         gdf = gpd.read_file(gpkg_file_path)
+
         gdf_wgs84 = gdf.to_crs(epsg=4326)
+        gdf_wgs84.to_file(geojson_file_path, driver='GeoJSON')
         geojson_data = json.loads(gdf_wgs84.to_json())
 
     except Exception as e:
@@ -61,6 +68,6 @@ def detect_all_objects(
         "geojson": geojson_data,
         "image_path": output_image_path,
         "mask_path": mask_file_path,
-        "gpkg_path": gpkg_file_path
+        "geojson_path": geojson_file_path
     }
 

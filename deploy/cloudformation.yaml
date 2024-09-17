@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to launch a GPU-enabled EC2 On-Demand instance with NVIDIA driver and CUDA setup."
+
+Parameters:
+  InstanceType:
+    Description: "Instance type"
+    Type: String
+    Default: "t2.micro"
+  
+  ImageId:
+    Description: "Instance type"
+    Type: String
+    Default: "ami-0e86e20dae9224db8"
+
+  SubnetId:
+    Description: "The subnet ID to launch the EC2 instance"
+    Type: String
+    Default: "subnet-0d6872949616707b6"
+
+  SecurityGroupId:
+    Description: "The security group ID to attach to the EC2 instance"
+    Type: String
+    Default: "sg-0c763a0ca2cf71d20"
+
+Resources:
+  GPUInstance:
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref ImageId
+      KeyName: "rub21-ec2"
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: 100
+            VolumeType: gp2
+      Tags:
+        - Key: Name
+          Value: "geosam-service"
+      UserData:
+        Fn::Base64: 
+          !Join
+            - ''
+            - - |
+                #!/bin/bash
+              - |
+                set -x
+                sudo apt-get install -y build-essential dkms linux-headers-$(uname -r) git
+              - |
+                sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+                sudo sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/cuda.list'
+                sudo apt-get update
+                sudo apt-get install -y cuda-12-6
+              - |
+                echo 'export PATH=/usr/local/cuda-12.6/bin:${PATH:+:${PATH}}' >> ~/.bashrc
+              - |
+                echo 'export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc
+              - |
+                source ~/.bashrc
+                sudo apt-get -y install nvidia-driver-535 nvidia-kernel-source-535
+                sudo apt-get install -y docker.io
+                sudo systemctl enable docker
+                sudo systemctl start docker
+              - |
+                distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+              - |
+                curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+                curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+                sudo apt-get update
+                sudo apt-get install -y nvidia-docker2
+                sudo systemctl restart docker
+                # sudo docker run --rm --gpus all nvidia/cuda:12.6-base nvidia-smi
+                cd /home/ubuntu
+                git clone -b samgeo https://github.com/GeoCompas/geosam-service.git
+                cd geosam-service
+                sudo docker build -t geosam-service .
+                sudo docker run -d --gpus all -v $(pwd)/app:/app --name geosam-service -p 8000:8000 geosam-service
+
+Outputs:
+  InstanceId:
+    Description: "Instance ID of the created GPU On-Demand instance"
+    Value: !Ref GPUInstance
+  PublicIP:
+    Description: "Public IP of the created GPU instance"
+    Value: !GetAtt GPUInstance.PublicIp

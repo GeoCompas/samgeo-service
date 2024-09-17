@@ -6,3 +6,4 @@ public/
 module/
 data/
 .DS_Store
+*.pem

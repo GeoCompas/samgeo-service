@@ -6,6 +6,14 @@ import time
 
 router = APIRouter()
 
+def format_file_size(size_in_bytes):
+    """Convert bytes to a human-readable file size."""
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size_in_bytes < 1024:
+            return f"{size_in_bytes:.2f} {unit}"
+        size_in_bytes /= 1024
+    return f"{size_in_bytes:.2f} TB"
+
 @router.get("/", response_class=HTMLResponse)
 def browse_files(directory: str = ""):
     public_dir = Path("public") / directory
@@ -28,11 +36,12 @@ def browse_files(directory: str = ""):
     for file in files:
         file_name = file.name
         modification_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(file.stat().st_mtime))
+        file_size = format_file_size(file.stat().st_size)
 
         if file.is_dir():
             html_content += f'<li><a href="/browse?directory={directory}/{file_name}">{file_name}/</a> - {modification_time}</li>'
         else:
-            html_content += f'<li><a href="/files/{directory}/{file_name}">{file_name}</a> - {modification_time}</li>'
+            html_content += f'<li><a href="/files/{directory}/{file_name}">{file_name}</a> - {modification_time} - {file_size}</li>'
 
     html_content += "</ul>"
     return HTMLResponse(content=html_content)
