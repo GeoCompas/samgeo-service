@@ -1,9 +1,12 @@
 services:
-  gdal:
-    image: geocompas/cattle-fields-highlights
+  samgeo:
+    platform: linux/amd64
+    image: geocompas/samgeo-service
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./drive:/data/drive
-
+      - ./app:/app
+      - ./module:/home/jovyan/.cache/torch/hub/checkpoints
+    ports:
+      - '8000:8000'
