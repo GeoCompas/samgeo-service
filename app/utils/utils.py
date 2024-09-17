@@ -5,6 +5,7 @@ import logging
 import geopandas as gpd
 import json
 from fastapi import FastAPI
+from samgeo import tms_to_geotiff
 
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:

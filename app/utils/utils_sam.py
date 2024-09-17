@@ -4,7 +4,7 @@ import geopandas as gpd
 import logging
 import json
 import torch
-from utils import generate_geojson, download_tif_if_not_exists
+from utils.utils import generate_geojson, download_tif_if_not_exists
 
 # Initialize the SAM model
 device = "cuda" if torch.cuda.is_available() else "cpu"
