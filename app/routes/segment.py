@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Tuple
-from utils_detection import detect_all_objects,check_gpu
+from utils_detection import detect_segment_objects,check_gpu
 
 router = APIRouter()
 
@@ -33,7 +33,7 @@ async def segment_image(request: SegmentRequest):
 
     zoom_int = int(request.zoom)
     result = await asyncio.to_thread(
-        detect_all_objects,
+        detect_segment_objects,
         bbox=request.bbox,
         zoom=zoom_int,
         id=request.id,
