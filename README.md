@@ -6,7 +6,7 @@ This application is an API service for SAMGEO, utilizing SAM and SAM2. It enable
 
 ```sh
 docker build -t samgeo-service .
-docker run --gpus all -v $(pwd)/app:/app -p 8000:8000 samgeo-service
+docker run --gpus all -v $(pwd)/app:/app -p 80:80 samgeo-service
 ```
 
 
@@ -16,7 +16,7 @@ docker run --gpus all -v $(pwd)/app:/app -p 8000:8000 samgeo-service
 
 
 ```sh
-curl -X POST "http://127.0.0.1:8000/sam/segment_automatic" \
+curl -X POST "http://127.0.0.1:80/sam/segment_automatic" \
 -H "Content-Type: application/json" \
 -d '{
   "bbox": [-74.224144, -13.150200, -74.216339, -13.145901],
@@ -30,7 +30,7 @@ curl -X POST "http://127.0.0.1:8000/sam/segment_automatic" \
 - Segment the image with coords input prompts
 
 ```sh
-curl -X POST "http://127.0.0.1:8000/sam/segment_predictor" \
+curl -X POST "http://127.0.0.1:80/sam/segment_predictor" \
 -H "Content-Type: application/json" \
 -d '{
   "bbox": [-74.224144, -13.150200, -74.216339, -13.145901],
@@ -50,7 +50,7 @@ curl -X POST "http://127.0.0.1:8000/sam/segment_predictor" \
 
 
 ```sh
-curl -X POST "http://127.0.0.1:8000/sam2/segment_automatic" \
+curl -X POST "http://127.0.0.1:80/sam2/segment_automatic" \
 -H "Content-Type: application/json" \
 -d '{
   "bbox": [-74.224144, -13.150200, -74.216339, -13.145901],
@@ -66,7 +66,7 @@ curl -X POST "http://127.0.0.1:8000/sam2/segment_automatic" \
 
 
 ```sh
-curl -X POST "http://127.0.0.1:8000/sam2/segment_predictor" \
+curl -X POST "http://127.0.0.1:80/sam2/segment_predictor" \
 -H "Content-Type: application/json" \
 -d '{
   "bbox": [-74.224144, -13.150200, -74.216339, -13.145901],

@@ -23,6 +23,6 @@ RUN pip install --no-cache-dir --root-user-action=ignore -r /app/requirements.tx
 
 COPY ./app /app
 
-EXPOSE 8000
+EXPOSE 80
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--log-level", "debug"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--reload", "--log-level", "debug"]
