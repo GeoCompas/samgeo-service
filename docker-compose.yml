@@ -9,4 +9,4 @@ services:
       - ./app:/app
       - ./module:/home/jovyan/.cache/torch/hub/checkpoints
     ports:
-      - '8000:8000'
+      - '80:80'
