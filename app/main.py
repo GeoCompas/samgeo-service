@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import logging
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
+
 from routes.files import router as files_router
 from routes.route_sam import router as route_sam
 from routes.route_sam2 import router as route_sam2
@@ -14,6 +16,18 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 app.title = "SAMGEO API"
 app.version = "0.1.0"
+
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if not os.path.exists("public"):
     os.makedirs("public")

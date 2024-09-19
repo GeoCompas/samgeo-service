@@ -9,6 +9,8 @@ router = APIRouter()
 
 @router.post("/segment_automatic")
 async def automatic_detection(request: SegmentRequest):
+    print("========")
+    print(request)
     zoom_int = int(request.zoom)
 
     result = await asyncio.to_thread(
