@@ -9,13 +9,6 @@ from utils.utils import generate_geojson, download_tif_if_not_exists
 # Initialize the SAM model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# sam2 = SamGeo2(
-#     model_id="sam2-hiera-large",
-#     automatic=True,
-#     device=device
-#     # unique=True
-# )
-
 sam2 = SamGeo2(
     model_id="sam2-hiera-large",
     device=device,

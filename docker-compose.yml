@@ -10,3 +10,13 @@ services:
       - ./module:/home/jovyan/.cache/torch/hub/checkpoints
     ports:
       - '80:80'
+  # local:
+  #   platform: linux/amd64
+  #   image: geocompas/samgeo-service_local
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.local
+  #   volumes:
+  #     - ./app:/app
+  #   ports:
+  #     - '80:80'

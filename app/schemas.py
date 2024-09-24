@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator,root_validator, ValidationError
 from typing import List, Tuple, Optional
 
 
@@ -10,6 +10,7 @@ class SegmentRequest(BaseModel):
     zoom: float
     id: str
     project: str
+    
 
     # @field_validator("bbox", mode="before")
     # def validate_bbox(cls, bbox):
@@ -40,3 +41,24 @@ class SegmentRequest(BaseModel):
     #         if len(v) != len(values.get('point_labels', [])):
     #             raise ValueError("The number of point coordinates must match the number of point labels")
     #     return v
+
+
+class ImageRequest(BaseModel):
+    canvas_image: Optional[str] = None
+    tms_source: Optional[str] = None
+    project_id: str
+    aoi_id: str
+    bbox: List[float]
+    zoom: float
+
+    @root_validator(pre=True)
+    def check_canvas_or_tms_source(cls, values):
+        canvas_image = values.get('canvas_image')
+        tms_source = values.get('tms_source')
+        if not canvas_image and not tms_source:
+            raise ValueError('Either canvas_image or tms_source must be provided')
+        zoom = values.get('zoom')
+        if zoom is not None:
+            values['zoom'] = int(zoom)
+
+        return values
