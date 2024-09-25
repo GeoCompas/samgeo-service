@@ -1,6 +1,7 @@
 import os
 from samgeo import SamGeo2
 import geopandas as gpd
+from datetime import datetime
 import logging
 import json
 import torch
@@ -8,7 +9,7 @@ from utils.utils import generate_geojson, download_tif_if_not_exists
 
 # Initialize the SAM model
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
+print(f"Using device.........{device}")
 sam2 = SamGeo2(
     model_id="sam2-hiera-large",
     device=device,
@@ -32,62 +33,58 @@ sam2Predictor = SamGeo2(
 )
 
 
+def date_minute_str():
+    """Returns the current date and time in the format YYYYMMDD_HHMM."""
+    return datetime.now().strftime("%Y%m%d_%H%M")
+
+
 def detect_automatic_sam2(bbox, zoom, id, project):
     """
-    Function to handle object detect all objects
+    Function to handle object detection for all objects.
     """
-    bbox_str = f"{bbox[0]:.6f}_{bbox[1]:.6f}_{bbox[2]:.6f}_{bbox[3]:.6f}".replace(",", "_")
-    project_str = project.replace(" ", "_")
-    zoom_str = f"{int(zoom)}"
-
-    mask_file_name = f"mask_{bbox_str}_zoom{zoom_str}_{project_str}.tif"
-    geojson_file_name = f"segment_{bbox_str}_zoom{zoom_str}_{project_str}.geojson"
-    gpkg_file_name = f"segment_{bbox_str}_zoom{zoom_str}_{project_str}.gpkg"
-
-    public_dir = "public"
-    mask_file_path = os.path.join(public_dir, mask_file_name)
+    # Format the file names with project and id, and include date and time.
+    date_time = date_minute_str()
+    tif_file_name = f"{id}.tif"
+    mask_file_name = f"tmp/mask_{id}.tif"
+    geojson_file_name = f"{id}_{date_time}.geojson"
+    gpkg_file_name = f"{id}_{date_time}.gpkg"
+    public_dir = f"public/{project}"
+    tif_file_path = os.path.join(public_dir, tif_file_name)
+    mask_file_path = mask_file_name
     geojson_file_path = os.path.join(public_dir, geojson_file_name)
     gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
-
     try:
         # Download or reuse TIFF
-        output_image_path = download_tif_if_not_exists(bbox, zoom, project)
-        sam2.generate(output_image_path, output=mask_file_path)
+        # tif_file_path = download_tif_if_not_exists(bbox, zoom,project,id,"public")
+        # Process image and generate mask and vector data
+        sam2.generate(tif_file_path, output=mask_file_path)
         sam2.raster_to_vector(mask_file_path, gpkg_file_path)
         geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
-
     except Exception as e:
         logging.error(f"An error occurred during processing: {e}")
         return {"error": str(e)}
-
-    return {
-        "geojson": geojson_data,
-        "image_path": output_image_path,
-        "mask_path": mask_file_path,
-        "geojson_path": geojson_file_path,
-    }
+    return geojson_data
 
 
 def detect_predictor_sam2(bbox, zoom, point_coords, point_labels, id, project):
     """
     Function to handle segmentation based on point input prompts.
     """
-    bbox_str = f"{bbox[0]:.6f}_{bbox[1]:.6f}_{bbox[2]:.6f}_{bbox[3]:.6f}".replace(",", "_")
-    project_str = project.replace(" ", "_")
-    zoom_str = f"{int(zoom)}"
-
-    mask_file_name = f"mask_{bbox_str}_zoom{zoom_str}_points_{project_str}.tif"
-    geojson_file_name = f"segment_{bbox_str}_zoom{zoom_str}_points_{project_str}.geojson"
-    gpkg_file_name = f"segment_{bbox_str}_zoom{zoom_str}_{project_str}.gpkg"
-
-    public_dir = "public"
-    mask_file_path = os.path.join(public_dir, mask_file_name)
+    print(bbox, zoom, point_coords, point_labels, id, project)
+    date_time = date_minute_str()
+    tif_file_name = f"{id}.tif"
+    mask_file_name = f"tmp/mask_{id}.tif"
+    geojson_file_name = f"{id}_{date_time}.geojson"
+    gpkg_file_name = f"{id}_{date_time}.gpkg"
+    public_dir = f"public/{project}"
+    tif_file_path = os.path.join(public_dir, tif_file_name)
+    mask_file_path = mask_file_name
     geojson_file_path = os.path.join(public_dir, geojson_file_name)
     gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
 
     try:
-        output_image_path = download_tif_if_not_exists(bbox, zoom, project)
-        sam2Predictor.set_image(output_image_path)
+        # tif_file_name = download_tif_if_not_exists(bbox, zoom, project)
+        sam2Predictor.set_image(tif_file_path)
         sam2Predictor.predict(
             point_coords, point_labels=point_labels, point_crs="EPSG:4326", output=mask_file_path
         )
@@ -98,9 +95,4 @@ def detect_predictor_sam2(bbox, zoom, point_coords, point_labels, id, project):
         logging.error(f"An error occurred during point-based segmentation: {e}")
         return {"error": str(e)}
 
-    return {
-        "geojson": geojson_data,
-        "image_path": output_image_path,
-        "mask_path": mask_file_path,
-        "geojson_path": geojson_file_path,
-    }
+    return geojson_data

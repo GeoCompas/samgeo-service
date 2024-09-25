@@ -9,10 +9,7 @@ router = APIRouter()
 
 @router.post("/segment_automatic")
 async def automatic_detection(request: SegmentRequest):
-    print("========")
-    print(request)
     zoom_int = int(request.zoom)
-
     result = await asyncio.to_thread(
         detect_automatic_sam2,
         bbox=request.bbox,
@@ -27,8 +24,10 @@ async def automatic_detection(request: SegmentRequest):
 
 @router.post("/segment_predictor")
 async def predictor_promts(request: SegmentRequest):
-    zoom_int = int(request.zoom)
+    print("=============")
 
+    print(request)
+    zoom_int = int(request.zoom)
     result = await asyncio.to_thread(
         detect_predictor_sam2,
         bbox=request.bbox,
@@ -38,6 +37,7 @@ async def predictor_promts(request: SegmentRequest):
         id=request.id,
         project=request.project,
     )
+
     if isinstance(result, dict) and "error" in result:
         return result
     return JSONResponse(content=result)

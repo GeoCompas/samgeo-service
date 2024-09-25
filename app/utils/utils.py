@@ -6,6 +6,7 @@ import geopandas as gpd
 import json
 from fastapi import FastAPI
 from samgeo import tms_to_geotiff
+from shapely.geometry import Polygon, MultiPolygon
 
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:
@@ -49,30 +50,49 @@ def check_gpu():
         return {"gpu": False, "message": "No GPU available, using CPU"}
 
 
+# def generate_geojson(gpkg_file_path, output_geojson_path):
+#     try:
+#         logging.info(f"Converting segmentation results to GeoJSON at {output_geojson_path}")
+#         gdf = gpd.read_file(gpkg_file_path)
+#         gdf_wgs84 = gdf.to_crs(epsg=4326)
+#         gdf_wgs84.to_file(output_geojson_path, driver="GeoJSON")
+#         geojson_data = json.loads(gdf_wgs84.to_json())
+#         return geojson_data
+#     except Exception as e:
+#         logging.error(f"Error generating GeoJSON: {e}")
+#         return None
+
+
 def generate_geojson(gpkg_file_path, output_geojson_path):
     try:
         logging.info(f"Converting segmentation results to GeoJSON at {output_geojson_path}")
         gdf = gpd.read_file(gpkg_file_path)
         gdf_wgs84 = gdf.to_crs(epsg=4326)
+        gdf_wgs84["geometry"] = gdf_wgs84["geometry"].apply(
+            lambda geom: (
+                geom
+                if isinstance(geom, Polygon)
+                else geom.convex_hull if isinstance(geom, MultiPolygon) else geom
+            )
+        )
         gdf_wgs84.to_file(output_geojson_path, driver="GeoJSON")
         geojson_data = json.loads(gdf_wgs84.to_json())
         return geojson_data
+
     except Exception as e:
         logging.error(f"Error generating GeoJSON: {e}")
         return None
 
 
-def download_tif_if_not_exists(bbox, zoom, project, output_dir="public"):
+def download_tif_if_not_exists(bbox, zoom, project, id, output_dir="public"):
     """
     Downloads a TIFF image using tms_to_geotiff if it doesn't already exist.
     """
-    bbox_str = f"{bbox[0]:.6f}_{bbox[1]:.6f}_{bbox[2]:.6f}_{bbox[3]:.6f}".replace(",", "_")
-    project_str = project.replace(" ", "_")
-    zoom_str = f"{int(zoom)}"
 
-    output_image_name = f"satellite_image_{bbox_str}_zoom{zoom_str}_{project_str}.tif"
+    output_image_name = f"{project}/{id}_a.tif"
     output_image_path = os.path.join(output_dir, output_image_name)
 
+    print(output_image_path)
     if os.path.exists(output_image_path):
         logging.info(f"Satellite image already exists at: {output_image_path}. Skipping download.")
     else:

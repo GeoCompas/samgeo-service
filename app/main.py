@@ -5,7 +5,7 @@ import logging
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes.files import router as files_router
+from routes.route_predictions import router as route_predictions
 from routes.route_sam import router as route_sam
 from routes.route_sam2 import router as route_sam2
 from utils.utils import check_gpu
@@ -30,8 +30,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if not os.path.exists("public"):
-    os.makedirs("public")
+# if not os.path.exists("public"):
+#     os.makedirs("public")
+os.makedirs(f"public", exist_ok=True)
+os.makedirs(f"tmp", exist_ok=True)
 
 
 @app.get("/")
@@ -44,9 +46,9 @@ async def gpu_check():
     result = await asyncio.to_thread(check_gpu)
     return result
 
-app.include_router(route_sam, prefix="/sam")
-app.include_router(route_sam2, prefix="/sam2")
 
+# app.include_router(route_sam, prefix="/sam")
+app.include_router(route_sam2, prefix="/sam2")
 app.mount("/files", StaticFiles(directory="public"), name="public")
-app.include_router(files_router, prefix="/browse")
+app.include_router(route_predictions)
 app.include_router(route_images)

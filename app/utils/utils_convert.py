@@ -5,6 +5,7 @@ import numpy as np
 import os
 from typing import List
 
+
 def convert_image_to_geotiff(image_filename: str, tif_filename: str, bbox: List[float]):
     try:
         image = Image.open(image_filename)
@@ -35,4 +36,3 @@ def convert_image_to_geotiff(image_filename: str, tif_filename: str, bbox: List[
     except Exception as e:
         print(f"Error converting image to GeoTIFF: {str(e)}")
         raise
-    

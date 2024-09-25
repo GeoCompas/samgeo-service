@@ -10,6 +10,15 @@ services:
       - ./module:/home/jovyan/.cache/torch/hub/checkpoints
     ports:
       - '80:80'
+    env_file:
+      - ./.env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    runtime: nvidia
+
   # local:
   #   platform: linux/amd64
   #   image: geocompas/samgeo-service_local
