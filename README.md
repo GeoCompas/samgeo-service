@@ -6,8 +6,10 @@ This application is an API service for SAMGEO, utilizing SAM and SAM2. It enable
 
 ```sh
 docker build -t samgeo-service .
-docker run --gpus all -v $(pwd)/app:/app -p 80:80 samgeo-service
+docker run --gpus all --env-file .env.example -v $(pwd)/app:/app -p 80:80 samgeo-service
 ```
+sudo docker build -t samgeo-service .
+docker run -d --gpus all --env-file .env.example -v $(pwd)/app:/app -p 80:80 samgeo-service
 
 
 ## Example to request SAM endpoints

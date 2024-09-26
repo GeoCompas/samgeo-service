@@ -9,4 +9,6 @@ rtree==1.0.1
 typing-extensions>=4.10.0
 maplibre>=0.2.6
 shiny>=0.7.0
-GDAL
+# GDAL
+rasterio
+pillow
