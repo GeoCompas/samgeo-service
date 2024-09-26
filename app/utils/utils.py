@@ -4,9 +4,14 @@ import torch
 import logging
 import geopandas as gpd
 import json
+import psutil
 from fastapi import FastAPI
 from samgeo import tms_to_geotiff
 from shapely.geometry import Polygon, MultiPolygon
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:
@@ -44,23 +49,39 @@ def group_files_by_base_name(public_dir: str, base_url: str) -> list:
 
 
 def check_gpu():
+    # Check GPU availability and details
     if torch.cuda.is_available():
-        return {"gpu": True, "device": torch.cuda.get_device_name(0)}
+        gpu_info = {"gpu": True, "device": torch.cuda.get_device_name(0)}
     else:
-        return {"gpu": False, "message": "No GPU available, using CPU"}
+        gpu_info = {"gpu": False, "message": "No GPU available, using CPU"}
+
+    # Check CPU information
+    cpu_info = {
+        "cpu_percent": psutil.cpu_percent(interval=1),
+        "cpu_cores": psutil.cpu_count(logical=False),
+        "cpu_logical_cores": psutil.cpu_count(logical=True),
+    }
+
+    # Check Memory information
+    memory_info = psutil.virtual_memory()
+    memory_usage = {
+        "total_memory": memory_info.total / (1024**3),
+        "used_memory": memory_info.used / (1024**3),
+        "free_memory": memory_info.available / (1024**3),
+        "memory_percent": memory_info.percent,
+    }
+
+    return {"gpu": gpu_info, "cpu": cpu_info, "memory": memory_usage}
 
 
-# def generate_geojson(gpkg_file_path, output_geojson_path):
-#     try:
-#         logging.info(f"Converting segmentation results to GeoJSON at {output_geojson_path}")
-#         gdf = gpd.read_file(gpkg_file_path)
-#         gdf_wgs84 = gdf.to_crs(epsg=4326)
-#         gdf_wgs84.to_file(output_geojson_path, driver="GeoJSON")
-#         geojson_data = json.loads(gdf_wgs84.to_json())
-#         return geojson_data
-#     except Exception as e:
-#         logging.error(f"Error generating GeoJSON: {e}")
-#         return None
+def save_geojson(json_data, output_geojson_path):
+    try:
+        with open(output_geojson_path, "w", encoding="utf-8") as geojson_file:
+            json.dump(json_data, geojson_file, ensure_ascii=False, indent=4)
+        logger.info(f"GeoJSON data successfully saved to {output_geojson_path}")
+    except Exception as e:
+        logger.error(f"Failed to save GeoJSON data: {e}")
+        raise e
 
 
 def generate_geojson(gpkg_file_path, output_geojson_path):

@@ -34,7 +34,6 @@ def list_files_in_project(project_id: str = ""):
                     "image_url": None,
                     "tif_url": None,
                 }
-            # if ext == ".geojson":
             detections[base_name]["geojson_files"] = [
                 f"{BASE_URL}/files/{project_id}/{f.name}"
                 for f in public_dir.iterdir()
