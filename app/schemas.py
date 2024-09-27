@@ -76,3 +76,9 @@ class ImageRequest(BaseModel):
         if zoom < 0 or zoom >= 20:
             raise ValueError("Zoom level must be between 0 and 20")
         return zoom
+
+
+class SaveGeojson(BaseModel):
+    data: str
+    project: str
+    id: str

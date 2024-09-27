@@ -3,6 +3,9 @@ import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi import UploadFile, File, Depends
+from utils.utils import date_minute_str
+from schemas import SaveGeojson
 
 router = APIRouter()
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
@@ -55,3 +58,27 @@ def list_files_in_project(project_id: str = ""):
     response_data = {"project_id": project_id or "/", "detection": detections}
 
     return JSONResponse(content=response_data)
+
+
+@router.post("/upload_geojson")
+async def upload_geojson(request: SaveGeojson):
+    public_dir = Path("public").resolve() / Path(request.project)
+    if not public_dir.exists():
+        public_dir.mkdir(parents=True)
+
+    geojson_file_name = f"{request.id}_{date_minute_str()}_fixed.geojson"
+    geojson_file_path = public_dir / geojson_file_name
+
+    try:
+        geojson_data = json.loads(request.data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in 'data' field")
+
+    try:
+        with open(geojson_file_path, "w") as geojson_file:
+            json.dump(geojson_data, geojson_file)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+    file_url = f"{BASE_URL}/files/{request.project}/{geojson_file_name}"
+    return {"project": request.project, "file_url": file_url}

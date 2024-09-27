@@ -6,10 +6,10 @@ import geopandas as gpd
 import json
 import psutil
 from fastapi import FastAPI
+from datetime import datetime
 from samgeo import tms_to_geotiff
 from shapely.geometry import Polygon, MultiPolygon
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -112,8 +112,6 @@ def download_tif_if_not_exists(bbox, zoom, project, id, output_dir="public"):
 
     output_image_name = f"{project}/{id}_a.tif"
     output_image_path = os.path.join(output_dir, output_image_name)
-
-    print(output_image_path)
     if os.path.exists(output_image_path):
         logging.info(f"Satellite image already exists at: {output_image_path}. Skipping download.")
     else:
@@ -123,3 +121,8 @@ def download_tif_if_not_exists(bbox, zoom, project, id, output_dir="public"):
         )
 
     return output_image_path
+
+
+def date_minute_str():
+    """Returns the current date and time in the format YYYYMMDD_HHMM."""
+    return datetime.now().strftime("%Y%m%d_%H%M")

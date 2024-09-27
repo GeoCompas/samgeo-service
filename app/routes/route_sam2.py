@@ -8,7 +8,6 @@ from utils.utils import logger
 
 router = APIRouter()
 
-
 @router.post("/segment_automatic")
 async def automatic_detection(request: SegmentRequest):
     zoom_int = int(request.zoom)

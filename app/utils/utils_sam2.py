@@ -1,11 +1,16 @@
 import os
 from samgeo import SamGeo2
 import geopandas as gpd
-from datetime import datetime
 import logging
 import json
 import torch
-from utils.utils import generate_geojson, download_tif_if_not_exists, logger, save_geojson
+from utils.utils import (
+    generate_geojson,
+    download_tif_if_not_exists,
+    logger,
+    save_geojson,
+    date_minute_str,
+)
 from schemas import SegmentRequest
 
 # Initialize the SAM model
@@ -32,11 +37,6 @@ sam2Predictor = SamGeo2(
     device=device,
     automatic=False,
 )
-
-
-def date_minute_str():
-    """Returns the current date and time in the format YYYYMMDD_HHMM."""
-    return datetime.now().strftime("%Y%m%d_%H%M")
 
 
 def detect_automatic_sam2(bbox, zoom, id, project):

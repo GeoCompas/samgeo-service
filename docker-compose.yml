@@ -18,14 +18,3 @@ services:
           devices:
             - capabilities: [gpu]
     runtime: nvidia
-
-  # local:
-  #   platform: linux/amd64
-  #   image: geocompas/samgeo-service_local
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.local
-  #   volumes:
-  #     - ./app:/app
-  #   ports:
-  #     - '80:80'

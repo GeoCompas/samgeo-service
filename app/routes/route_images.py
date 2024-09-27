@@ -48,8 +48,6 @@ async def save_image(request: ImageRequest):
 
             image_url = f"{BASE_URL}/{image_filename}"
             tif_url = f"{BASE_URL}/{tif_filename}"
-
-            # Prepare data to save in the JSON file (excluding canvas_image)
             data_to_save = {
                 "project": request.project,
                 "id": request.id,
@@ -58,8 +56,6 @@ async def save_image(request: ImageRequest):
                 "image_url": image_url,
                 "tif_url": tif_url,
             }
-
-            # Save data to a JSON file
             with open(json_filepath, "w") as json_file:
                 json.dump(data_to_save, json_file)
 
@@ -80,8 +76,6 @@ async def save_image(request: ImageRequest):
                     output=tif_filepath, bbox=bbox, zoom=zoom, source=tms_id, overwrite=True
                 )
                 tif_url = f"{BASE_URL}/{tif_filename}"
-
-                # Prepare data to save in the JSON file (excluding canvas_image)
                 data_to_save = {
                     "project": request.project,
                     "id": request.id,
@@ -90,8 +84,6 @@ async def save_image(request: ImageRequest):
                     "tms_source": request.tms_source,
                     "tif_url": tif_url,
                 }
-
-                # Save data to a JSON file
                 with open(json_filepath, "w") as json_file:
                     json.dump(data_to_save, json_file)
 
