@@ -3,13 +3,13 @@ from typing import List, Tuple, Optional
 
 
 class SegmentRequest(BaseModel):
+    project: str
+    id: str
     bbox: List[float]
     point_labels: Optional[List[int]] = None
     point_coords: Optional[List[Tuple[float, float]]] = None
     crs: str = "EPSG:4326"
     zoom: float
-    id: str
-    project: str
     action_type: str = None
 
     @field_validator("bbox", mode="before")
@@ -37,21 +37,18 @@ class SegmentRequest(BaseModel):
 
 
 class ImageRequest(BaseModel):
-    canvas_image: Optional[str] = None
-    tms_source: Optional[str] = None
     project: str
     id: str
+    canvas_image: Optional[str]
     bbox: List[float]
     zoom: float
     crs: str = "EPSG:4326"
 
     @root_validator(pre=True)
-    def check_canvas_or_tms_source(cls, values):
+    def check_canvas_image(cls, values):
         canvas_image = values.get("canvas_image")
-        tms_source = values.get("tms_source")
-        if not canvas_image and not tms_source:
-            raise ValueError("Either canvas_image or tms_source must be provided")
-
+        if not canvas_image:
+            raise ValueError("canvas_image must be provided")
         return values
 
     @field_validator("bbox", mode="before")
@@ -79,6 +76,6 @@ class ImageRequest(BaseModel):
 
 
 class SaveGeojson(BaseModel):
-    data: str
     project: str
     id: str
+    data: str
