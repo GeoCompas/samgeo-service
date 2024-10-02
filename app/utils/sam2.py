@@ -1,21 +1,17 @@
 import os
 from samgeo import SamGeo2
-import geopandas as gpd
-import logging
-import json
 import torch
 from utils.utils import (
     generate_geojson,
-    download_tif_if_not_exists,
-    logger,
     save_geojson,
     date_minute_str,
 )
 from schemas import SegmentRequest
+from utils.logger_config import log
 
 # Initialize the SAM model
 device = "cuda" if torch.cuda.is_available() else "cpu"
-logger.info(f"Using device: {device}")
+log.info(f"Using device: {device}")
 sam2 = SamGeo2(
     model_id="sam2-hiera-large",
     device=device,
@@ -41,7 +37,16 @@ sam2Predictor = SamGeo2(
 
 def detect_automatic_sam2(bbox, zoom, id, project):
     """
-    Function to handle object detection for all objects.
+    Detect objects automatically using SAM2 model based on the provided bounding box.
+
+    Args:
+        bbox (list): Bounding box coordinates [minx, miny, maxx, maxy].
+        zoom (int): Zoom level for the imagery.
+        id (str): Unique identifier for the image.
+        project (str): The name of the project.
+
+    Returns:
+        dict: The generated GeoJSON data, or an error message if the process fails.
     """
     date_time = date_minute_str()
     tif_file_name = f"{id}.tif"
@@ -55,25 +60,28 @@ def detect_automatic_sam2(bbox, zoom, id, project):
     gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
 
     try:
-        # Download or reuse TIFF
-        logger.info(
+        log.info(
             f"Processing detection for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}"
         )
         sam2.generate(tif_file_path, output=mask_file_path)
         sam2.raster_to_vector(mask_file_path, gpkg_file_path)
         geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
     except Exception as e:
-        logger.error(f"An error occurred during processing: {e}")
+        log.error(f"An error occurred during processing: {e}")
         return {"error": str(e)}
     return geojson_data
 
 
 def detect_predictor_sam2(request: SegmentRequest):
     """
-    Function to handle segmentation based on point input prompts.
-    The entire request object is passed and used.
+    Handle segmentation based on point input prompts using SAM2 model.
+
+    Args:
+        request (SegmentRequest): The request containing segmentation details like bbox, zoom, points, and action type.
+
+    Returns:
+        dict: The generated GeoJSON data, or an error message if the process fails.
     """
-    # Extract required fields from the request
     bbox = request.bbox
     zoom = int(request.zoom)
     point_coords = request.point_coords
@@ -82,7 +90,7 @@ def detect_predictor_sam2(request: SegmentRequest):
     project = request.project
     action_type = request.action_type
 
-    logger.info(
+    log.info(
         f"Processing segmentation for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}, action_type: {action_type}"
     )
 
@@ -103,7 +111,7 @@ def detect_predictor_sam2(request: SegmentRequest):
         sam2Predictor.set_image(tif_file_path)
 
         if action_type == "single_point":
-            logger.info(f"Predicting single point for id: {id}")
+            log.info(f"Predicting single point for id: {id}")
             sam2Predictor.predict(
                 point_coords,
                 point_labels=point_labels,
@@ -116,7 +124,7 @@ def detect_predictor_sam2(request: SegmentRequest):
         elif action_type == "multi_point":
             geojson_array = []
             for index, p_coords in enumerate(point_coords):
-                logger.info(f"Processing multi-point {p_coords} for id: {id}, point index: {index}")
+                log.info(f"Processing multi-point {p_coords} for id: {id}, point index: {index}")
                 mask_file_path_tmp = f"tmp/mask_{id}_{index}.tif"
                 gpkg_file_path_tmp = f"tmp/{id}_{index}.gpkg"
                 geojson_file_path_tmp = f"tmp/{id}_{index}.geojson"
@@ -130,6 +138,6 @@ def detect_predictor_sam2(request: SegmentRequest):
             geojson_data["features"] = geojson_array
             save_geojson(geojson_data, geojson_file_path)
     except Exception as e:
-        logger.error(f"An error occurred during point-based segmentation: {e}")
+        log.error(f"An error occurred during point-based segmentation: {e}")
         return {"error": str(e)}
     return geojson_data

@@ -2,11 +2,12 @@ import asyncio
 import logging
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from utils.utils_sam2 import detect_automatic_sam2, detect_predictor_sam2
+from utils.sam2 import detect_automatic_sam2, detect_predictor_sam2
 from schemas import SegmentRequest
-from utils.utils import logger
+from utils.logger_config import log
 
 router = APIRouter()
+
 
 @router.post("/segment_automatic")
 async def automatic_detection(request: SegmentRequest):
@@ -25,7 +26,7 @@ async def automatic_detection(request: SegmentRequest):
 
 @router.post("/segment_predictor")
 async def predictor_promts(request: SegmentRequest):
-    logger.info("Received request for predictor prompts with the following data: %s", request)
+    log.info("Received request for predictor prompts with the following data: %s", request)
 
     result = await asyncio.to_thread(
         detect_predictor_sam2,

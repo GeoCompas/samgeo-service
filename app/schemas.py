@@ -6,7 +6,7 @@ class SegmentRequest(BaseModel):
     bbox: List[float]
     point_labels: Optional[List[int]] = None
     point_coords: Optional[List[Tuple[float, float]]] = None
-    crs: str
+    crs: str = "EPSG:4326"
     zoom: float
     id: str
     project: str
@@ -43,7 +43,7 @@ class ImageRequest(BaseModel):
     id: str
     bbox: List[float]
     zoom: float
-    crs: str
+    crs: str = "EPSG:4326"
 
     @root_validator(pre=True)
     def check_canvas_or_tms_source(cls, values):

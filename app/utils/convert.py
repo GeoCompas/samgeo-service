@@ -1,14 +1,27 @@
-import logging
 import rasterio
 from rasterio.transform import from_bounds
 from PIL import Image
 import numpy as np
 import os
 from typing import List
-from utils.utils import logger
+from utils.logger_config import log
 
 
 def convert_image_to_geotiff(image_filename: str, tif_filename: str, bbox: List[float]):
+    """
+    Converts an image file to a GeoTIFF format using the provided bounding box (bbox).
+
+    Args:
+        image_filename (str): Path to the input image file.
+        tif_filename (str): Path to save the output GeoTIFF file.
+        bbox (List[float]): Bounding box for the GeoTIFF in the format [minx, miny, maxx, maxy].
+
+    Returns:
+        str: The path to the generated GeoTIFF file.
+
+    Raises:
+        Exception: If an error occurs during the conversion process.
+    """
     try:
         image = Image.open(image_filename)
         image = image.convert("RGB")
@@ -33,9 +46,9 @@ def convert_image_to_geotiff(image_filename: str, tif_filename: str, bbox: List[
             dst.write(image_array[:, :, 1], 2)
             dst.write(image_array[:, :, 2], 3)
 
-        logger.info(f"Converted {image_filename} to {tif_filename} with bbox: {bbox}")
+        log.info(f"Converted {image_filename} to {tif_filename} with bbox: {bbox}")
         return tif_filename
 
     except Exception as e:
-        logger.error(f"Error converting image to GeoTIFF: {str(e)}", exc_info=True)
+        log.error(f"Error converting image to GeoTIFF: {str(e)}", exc_info=True)
         raise

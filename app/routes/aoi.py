@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from schemas import ImageRequest
 
-from utils.utils_convert import convert_image_to_geotiff
+from utils.convert import convert_image_to_geotiff
 
 router = APIRouter()
 PUBLIC_DIR = "public/"

@@ -5,16 +5,23 @@ import logging
 import geopandas as gpd
 import json
 import psutil
-from fastapi import FastAPI
 from datetime import datetime
 from samgeo import tms_to_geotiff
 from shapely.geometry import Polygon, MultiPolygon
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from utils.logger_config import log
 
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:
+    """
+    Groups files in the specified directory by their base name and modification time.
+
+    Args:
+        public_dir (str): The path to the directory containing the files.
+        base_url (str): The base URL used to generate file URLs.
+
+    Returns:
+        list: A list of dictionaries, each containing the base name, files, and modification time.
+    """
     if not os.path.exists(public_dir):
         return {"error": "The public directory does not exist."}
 
@@ -49,20 +56,23 @@ def group_files_by_base_name(public_dir: str, base_url: str) -> list:
 
 
 def check_gpu():
-    # Check GPU availability and details
+    """
+    Checks if a GPU is available on the system and returns CPU and memory information.
+
+    Returns:
+        dict: A dictionary containing GPU, CPU, and memory information.
+    """
     if torch.cuda.is_available():
         gpu_info = {"gpu": True, "device": torch.cuda.get_device_name(0)}
     else:
         gpu_info = {"gpu": False, "message": "No GPU available, using CPU"}
 
-    # Check CPU information
     cpu_info = {
         "cpu_percent": psutil.cpu_percent(interval=1),
         "cpu_cores": psutil.cpu_count(logical=False),
         "cpu_logical_cores": psutil.cpu_count(logical=True),
     }
 
-    # Check Memory information
     memory_info = psutil.virtual_memory()
     memory_usage = {
         "total_memory": memory_info.total / (1024**3),
@@ -75,18 +85,41 @@ def check_gpu():
 
 
 def save_geojson(json_data, output_geojson_path):
+    """
+    Saves the provided JSON data as a GeoJSON file at the specified path.
+
+    Args:
+        json_data (dict): The JSON data to be saved.
+        output_geojson_path (str): The file path where the GeoJSON will be saved.
+
+    Raises:
+        Exception: If an error occurs while saving the GeoJSON file.
+    """
     try:
         with open(output_geojson_path, "w", encoding="utf-8") as geojson_file:
             json.dump(json_data, geojson_file, ensure_ascii=False, indent=4)
-        logger.info(f"GeoJSON data successfully saved to {output_geojson_path}")
+        log.info(f"GeoJSON data successfully saved to {output_geojson_path}")
     except Exception as e:
-        logger.error(f"Failed to save GeoJSON data: {e}")
+        log.error(f"Failed to save GeoJSON data: {e}")
         raise e
 
 
 def generate_geojson(gpkg_file_path, output_geojson_path):
+    """
+    Converts a GeoPackage file to GeoJSON format and saves it at the specified path.
+
+    Args:
+        gpkg_file_path (str): The path to the GeoPackage file.
+        output_geojson_path (str): The path where the GeoJSON will be saved.
+
+    Returns:
+        dict: The generated GeoJSON data.
+
+    Raises:
+        Exception: If an error occurs during GeoJSON generation.
+    """
     try:
-        logging.info(f"Converting segmentation results to GeoJSON at {output_geojson_path}")
+        log.info(f"Converting segmentation results to GeoJSON at {output_geojson_path}")
         gdf = gpd.read_file(gpkg_file_path)
         gdf_wgs84 = gdf.to_crs(epsg=4326)
         gdf_wgs84["geometry"] = gdf_wgs84["geometry"].apply(
@@ -101,21 +134,30 @@ def generate_geojson(gpkg_file_path, output_geojson_path):
         return geojson_data
 
     except Exception as e:
-        logging.error(f"Error generating GeoJSON: {e}")
+        log.error(f"Error generating GeoJSON: {e}")
         return None
 
 
 def download_tif_if_not_exists(bbox, zoom, project, id, output_dir="public"):
     """
     Downloads a TIFF image using tms_to_geotiff if it doesn't already exist.
-    """
 
+    Args:
+        bbox (list): The bounding box for the image.
+        zoom (int): The zoom level for the image.
+        project (str): The project name.
+        id (str): The unique identifier for the image.
+        output_dir (str): The directory where the image will be saved. Defaults to "public".
+
+    Returns:
+        str: The path to the downloaded or existing TIFF image.
+    """
     output_image_name = f"{project}/{id}_a.tif"
     output_image_path = os.path.join(output_dir, output_image_name)
     if os.path.exists(output_image_path):
-        logging.info(f"Satellite image already exists at: {output_image_path}. Skipping download.")
+        log.info(f"Satellite image already exists at: {output_image_path}. Skipping download.")
     else:
-        logging.info(f"Downloading satellite imagery for bbox: {bbox} at zoom level: {zoom}")
+        log.info(f"Downloading satellite imagery for bbox: {bbox} at zoom level: {zoom}")
         tms_to_geotiff(
             output=output_image_path, bbox=bbox, zoom=int(zoom), source="Satellite", overwrite=True
         )
@@ -124,5 +166,10 @@ def download_tif_if_not_exists(bbox, zoom, project, id, output_dir="public"):
 
 
 def date_minute_str():
-    """Returns the current date and time in the format YYYYMMDD_HHMM."""
+    """
+    Returns the current date and time in the format YYYYMMDD_HHMM.
+
+    Returns:
+        str: The current date and time formatted as YYYYMMDD_HHMM.
+    """
     return datetime.now().strftime("%Y%m%d_%H%M")
