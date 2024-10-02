@@ -6,8 +6,7 @@ from samgeo import tms_to_geotiff
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from schemas import ImageRequest
-
+from schemas.aoi import AOIRequestBase
 from utils.convert import convert_image_to_geotiff
 
 router = APIRouter()
@@ -17,8 +16,12 @@ os.makedirs(PUBLIC_DIR, exist_ok=True)
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000") + "/files"
 
 
-@router.post("/aoi")
-async def save_image(request: ImageRequest):
+@router.post(
+    "/aoi",
+    tags=["Encode"],
+    description="Process canvas file and save as a TIF",
+)
+async def save_image(request: AOIRequestBase):
     if not request.canvas_image and not request.tms_source:
         raise HTTPException(
             status_code=400, detail="Either 'canvas_image' or 'tms_source' must be provided."

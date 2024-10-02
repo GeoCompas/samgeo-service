@@ -6,7 +6,7 @@ from utils.utils import (
     save_geojson,
     date_minute_str,
 )
-from schemas import SegmentRequest
+from schemas.segment import SegmentRequestBase
 from utils.logger_config import log
 
 # Initialize the SAM model
@@ -72,12 +72,12 @@ def detect_automatic_sam2(bbox, zoom, id, project):
     return geojson_data
 
 
-def detect_predictor_sam2(request: SegmentRequest):
+def detect_predictor_sam2(request: SegmentRequestBase):
     """
     Handle segmentation based on point input prompts using SAM2 model.
 
     Args:
-        request (SegmentRequest): The request containing segmentation details like bbox, zoom, points, and action type.
+        request (SegmentRequestBase): The request containing segmentation details like bbox, zoom, points, and action type.
 
     Returns:
         dict: The generated GeoJSON data, or an error message if the process fails.

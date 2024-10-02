@@ -5,13 +5,18 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File, Depends
 from utils.utils import date_minute_str
-from schemas import SaveGeojson
+from schemas.geojson import JSONDataBase
 
 router = APIRouter()
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 
-@router.get("/predictions", response_class=JSONResponse)
+@router.get(
+    "/predictions",
+    response_class=JSONResponse,
+    tags=["Utils"],
+    description="Decode the images, using automatic or point input prompts",
+)
 def list_files_in_project(project_id: str = ""):
     public_dir = Path("public").resolve() / Path(project_id)
     if not str(public_dir).startswith(str(Path("public").resolve())):
@@ -60,8 +65,12 @@ def list_files_in_project(project_id: str = ""):
     return JSONResponse(content=response_data)
 
 
-@router.post("/upload_geojson")
-async def upload_geojson(request: SaveGeojson):
+@router.post(
+    "/upload_geojson",
+    tags=["Utils"],
+    description="Save GeoJSON data format in order to open it in JOSM",
+)
+async def upload_geojson(request: JSONDataBase):
     public_dir = Path("public").resolve() / Path(request.project)
     if not public_dir.exists():
         public_dir.mkdir(parents=True)
