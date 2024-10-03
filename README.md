@@ -30,3 +30,14 @@ To build and run the SAMGEO service container with GPU support, follow these ste
 ## References
 
 This project is based on the [Segment Anything Services](https://github.com/developmentseed/segment-anything-services) repository from Development Seed.
+
+
+
+
+# Frontend
+
+There are currently two user interfaces/frontends that support the API:
+
+1. **Web Interface:** [ds-annotate](https://github.com/developmentseed/ds-annotate) - https://developmentseed.org/ds-annotate
+2. **JOSM Plugin:** [JosmMagicWand](https://github.com/developmentseed/JosmMagicWand)
+
