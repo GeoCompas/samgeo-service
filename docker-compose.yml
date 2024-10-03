@@ -7,14 +7,14 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./app:/app
-      # - ./module:/home/jovyan/.cache/torch/hub/checkpoints
+      - ./module:/home/jovyan/.cache/torch/hub/checkpoints
     ports:
       - '80:80'
     env_file:
       - ./.env
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - capabilities: [gpu]
-    # runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    runtime: nvidia

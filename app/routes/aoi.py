@@ -6,20 +6,22 @@ from samgeo import tms_to_geotiff
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from schemas.aoi import AOIRequestBase
+from schemas.aoi import AOIRequestBase, AOIResponseBase
 from utils.convert import convert_image_to_geotiff
+from utils.logger_config import log
 
 router = APIRouter()
 PUBLIC_DIR = "public/"
 os.makedirs(PUBLIC_DIR, exist_ok=True)
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000") + "/files"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000") + "files"
 
 
 @router.post(
     "/aoi",
-    tags=["Encode"],
-    description="Process canvas file and save as a TIF",
+    tags=["Encoder"],
+    response_model=AOIResponseBase,
+    description="Process canvas file and save it in the format required by SAM2",
 )
 async def save_image(request: AOIRequestBase):
     if not request.canvas_image and not request.tms_source:
@@ -51,49 +53,52 @@ async def save_image(request: AOIRequestBase):
 
             image_url = f"{BASE_URL}/{image_filename}"
             tif_url = f"{BASE_URL}/{tif_filename}"
-            data_to_save = {
-                "project": request.project,
-                "id": request.id,
-                "bbox": request.bbox,
-                "zoom": request.zoom,
-                "image_url": image_url,
-                "tif_url": tif_url,
-            }
+            log.info(image_url)
+            log.info(tif_url)
+            data_to_save = AOIResponseBase(
+                project=request.project,
+                id=request.id,
+                bbox=request.bbox,
+                zoom=request.zoom,
+                image_url=image_url,
+                tif_url=tif_url,
+            )
             with open(json_filepath, "w") as json_file:
-                json.dump(data_to_save, json_file)
+                json.dump(data_to_save.dict(), json_file)
 
-            return JSONResponse(content=data_to_save, status_code=200)
+            return data_to_save
 
-        elif request.tms_source:
-            tms_id = request.tms_source
+        # TODO, implement in case we request AOI using TMS layer
+        # elif request.tms_source:
+        #     tms_id = request.tms_source
 
-            if len(request.bbox) != 4:
-                raise HTTPException(
-                    status_code=400, detail="Bounding box (bbox) must contain exactly 4 floats."
-                )
+        #     if len(request.bbox) != 4:
+        #         raise HTTPException(
+        #             status_code=400, detail="Bounding box (bbox) must contain exactly 4 floats."
+        #         )
 
-            bbox = request.bbox
-            zoom = request.zoom
-            try:
-                tms_to_geotiff(
-                    output=tif_filepath, bbox=bbox, zoom=zoom, source=tms_id, overwrite=True
-                )
-                tif_url = f"{BASE_URL}/{tif_filename}"
-                data_to_save = {
-                    "project": request.project,
-                    "id": request.id,
-                    "bbox": request.bbox,
-                    "zoom": request.zoom,
-                    "tms_source": request.tms_source,
-                    "tif_url": tif_url,
-                }
-                with open(json_filepath, "w") as json_file:
-                    json.dump(data_to_save, json_file)
+        #     bbox = request.bbox
+        #     zoom = request.zoom
+        #     try:
+        #         tms_to_geotiff(
+        #             output=tif_filepath, bbox=bbox, zoom=zoom, source=tms_id, overwrite=True
+        #         )
+        #         tif_url = f"{BASE_URL}/{tif_filename}"
 
-                return JSONResponse(content=data_to_save, status_code=200)
+        #         data_to_save = AOIResponseBase(
+        #             project=request.project,
+        #             id=request.id,
+        #             bbox=request.bbox,
+        #             zoom=request.zoom,
+        #             tif_url=tif_url,
+        #         )
+        #         with open(json_filepath, "w") as json_file:
+        #             json.dump(data_to_save.dict(), json_file)
 
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error processing TMS: {str(e)}")
+        #         return data_to_save
+
+        #     except Exception as e:
+        #         raise HTTPException(status_code=500, detail=f"Error processing TMS: {str(e)}")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")

@@ -6,7 +6,7 @@ from utils.utils import (
     save_geojson,
     date_minute_str,
 )
-from schemas.segment import SegmentRequestBase
+from schemas.segment import SegmentRequestBase, SegmentResponseBase
 from utils.logger_config import log
 
 # Initialize the SAM model
@@ -35,18 +35,9 @@ sam2Predictor = SamGeo2(
 )
 
 
-def detect_automatic_sam2(bbox, zoom, id, project):
+def detect_automatic_sam2(bbox, zoom, id, project) -> SegmentResponseBase:
     """
     Detect objects automatically using SAM2 model based on the provided bounding box.
-
-    Args:
-        bbox (list): Bounding box coordinates [minx, miny, maxx, maxy].
-        zoom (int): Zoom level for the imagery.
-        id (str): Unique identifier for the image.
-        project (str): The name of the project.
-
-    Returns:
-        dict: The generated GeoJSON data, or an error message if the process fails.
     """
     date_time = date_minute_str()
     tif_file_name = f"{id}.tif"
@@ -66,21 +57,15 @@ def detect_automatic_sam2(bbox, zoom, id, project):
         sam2.generate(tif_file_path, output=mask_file_path)
         sam2.raster_to_vector(mask_file_path, gpkg_file_path)
         geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
+        return SegmentResponseBase(**geojson_data)
     except Exception as e:
         log.error(f"An error occurred during processing: {e}")
         return {"error": str(e)}
-    return geojson_data
 
 
-def detect_predictor_sam2(request: SegmentRequestBase):
+def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
     """
     Handle segmentation based on point input prompts using SAM2 model.
-
-    Args:
-        request (SegmentRequestBase): The request containing segmentation details like bbox, zoom, points, and action type.
-
-    Returns:
-        dict: The generated GeoJSON data, or an error message if the process fails.
     """
     bbox = request.bbox
     zoom = int(request.zoom)
@@ -120,6 +105,7 @@ def detect_predictor_sam2(request: SegmentRequestBase):
             )
             sam2.raster_to_vector(mask_file_path, gpkg_file_path)
             geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
+            return SegmentResponseBase(**geojson_data)
 
         elif action_type == "multi_point":
             geojson_array = []
@@ -137,7 +123,7 @@ def detect_predictor_sam2(request: SegmentRequestBase):
                     geojson_array.append(feat)
             geojson_data["features"] = geojson_array
             save_geojson(geojson_data, geojson_file_path)
+            return SegmentResponseBase(**geojson_data)
     except Exception as e:
         log.error(f"An error occurred during point-based segmentation: {e}")
         return {"error": str(e)}
-    return geojson_data
