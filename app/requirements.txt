@@ -6,7 +6,7 @@ rtree==1.0.1
 typing-extensions>=4.10.0
 maplibre>=0.2.6
 shiny>=0.7.0
-segment-geospatial==0.11.0
+segment-geospatial==0.11.1
 geopandas==0.14.4
 shapely==2.0.4
 rasterio==1.3.9
