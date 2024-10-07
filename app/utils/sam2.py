@@ -1,5 +1,5 @@
 import os
-from samgeo import SamGeo2
+from samgeo import SamGeo2, choose_device
 import torch
 from utils.utils import (
     generate_geojson,
@@ -10,7 +10,7 @@ from schemas.segment import SegmentRequestBase, SegmentResponseBase
 from utils.logger_config import log
 
 # Initialize the SAM model
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = choose_device()
 log.info(f"Using device: {device}")
 sam2 = SamGeo2(
     model_id="sam2-hiera-large",
