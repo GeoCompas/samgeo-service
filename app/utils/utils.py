@@ -65,6 +65,7 @@ def format_memory(size_in_bytes):
         size_in_mb = round(size_in_mb, 2)
         return f"{size_in_mb} MB"
 
+
 def check_gpu():
     """
     Checks if a GPU is available on the system and returns detailed GPU, CPU, and memory information.
@@ -87,7 +88,9 @@ def check_gpu():
             "gpu_memory_total": gpu_memory_total,
             "gpu_memory_allocated": gpu_memory_allocated,
             "gpu_memory_cached": gpu_memory_cached,
-            "gpu_memory_free": format_memory(torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0))
+            "gpu_memory_free": format_memory(
+                torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0)
+            ),
         }
     else:
         gpu_info = {}
@@ -106,12 +109,8 @@ def check_gpu():
         "memory_percent": memory_info.percent,
     }
 
-    return {
-        "device": str(device),  
-        "gpu": gpu_info, 
-        "cpu": cpu_info, 
-        "memory": memory_usage
-    }
+    return {"device": str(device), "gpu": gpu_info, "cpu": cpu_info, "memory": memory_usage}
+
 
 def save_geojson(json_data, output_geojson_path):
     """
@@ -202,3 +201,13 @@ def date_minute_str():
         str: The current date and time formatted as YYYYMMDD_HHMM.
     """
     return datetime.now().strftime("%Y%m%d_%H%M")
+
+
+def get_timestamp():
+    """
+    Returns the current Unix timestamp as an integer (no decimals).
+
+    Returns:
+        int: The current Unix timestamp.
+    """
+    return int(datetime.now().timestamp())
