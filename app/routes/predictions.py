@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File, Depends
-from utils.utils import date_minute_str
+from utils.utils import get_timestamp
 from schemas.geojson import JSONDataBase
 
 router = APIRouter()
@@ -43,7 +43,7 @@ def list_files_in_project(project_id: str = ""):
                     "tif_url": None,
                 }
             detections[base_name]["geojson_files"] = [
-                f"{BASE_URL}/files/{project_id}/{f.name}"
+                f"{BASE_URL}files/{project_id}/{f.name}"
                 for f in public_dir.iterdir()
                 if f.suffix == ".geojson" and base_name in f.stem
             ]
@@ -75,7 +75,7 @@ async def upload_geojson(request: JSONDataBase):
     if not public_dir.exists():
         public_dir.mkdir(parents=True)
 
-    geojson_file_name = f"{request.id}_{date_minute_str()}_fixed.geojson"
+    geojson_file_name = f"{request.id}_{get_timestamp()}_fixed.geojson"
     geojson_file_path = public_dir / geojson_file_name
 
     try:

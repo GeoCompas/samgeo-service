@@ -4,7 +4,7 @@ import torch
 from utils.utils import (
     generate_geojson,
     save_geojson,
-    date_minute_str,
+    get_timestamp,
 )
 from schemas.segment import SegmentRequestBase, SegmentResponseBase
 from utils.logger_config import log
@@ -39,7 +39,7 @@ def detect_automatic_sam2(bbox, zoom, id, project) -> SegmentResponseBase:
     """
     Detect objects automatically using SAM2 model based on the provided bounding box.
     """
-    date_time = date_minute_str()
+    date_time = get_timestamp()
     tif_file_name = f"{id}.tif"
     mask_file_name = f"tmp/mask_{id}.tif"
     geojson_file_name = f"{id}_{date_time}.geojson"
@@ -74,12 +74,13 @@ def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
     id = request.id
     project = request.project
     action_type = request.action_type
+    return_format = return_format.return_format
 
     log.info(
         f"Processing segmentation for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}, action_type: {action_type}"
     )
 
-    date_time = date_minute_str()
+    date_time = get_timestamp()
     tif_file_name = f"{id}.tif"
     mask_file_name = f"tmp/mask_{id}.tif"
     geojson_file_name = f"{id}_{date_time}.geojson"

@@ -6,7 +6,7 @@ import geopandas as gpd
 import json
 import psutil
 from datetime import datetime
-from samgeo import tms_to_geotiff
+from samgeo import tms_to_geotiff, choose_device
 from shapely.geometry import Polygon, MultiPolygon
 from utils.logger_config import log
 
@@ -55,17 +55,45 @@ def group_files_by_base_name(public_dir: str, base_url: str) -> list:
     return sorted_grouped_files
 
 
+def format_memory(size_in_bytes):
+    """Formats memory size: returns in GB if size > 1024 MB, otherwise in MB."""
+    size_in_mb = size_in_bytes / (1024**2)
+    if size_in_mb > 1024:
+        size_in_gb = round(size_in_bytes / (1024**3), 2)
+        return f"{size_in_gb} GB"
+    else:
+        size_in_mb = round(size_in_mb, 2)
+        return f"{size_in_mb} MB"
+
+
 def check_gpu():
     """
-    Checks if a GPU is available on the system and returns CPU and memory information.
+    Checks if a GPU is available on the system and returns detailed GPU, CPU, and memory information.
 
     Returns:
         dict: A dictionary containing GPU, CPU, and memory information.
     """
+    device = choose_device()
+    gpu_info = {}
+
     if torch.cuda.is_available():
-        gpu_info = {"gpu": True, "device": torch.cuda.get_device_name(0)}
+        num_gpus = torch.cuda.device_count()
+        gpu_memory_total = format_memory(torch.cuda.get_device_properties(0).total_memory)
+        gpu_memory_allocated = format_memory(torch.cuda.memory_allocated(0))
+        gpu_memory_cached = format_memory(torch.cuda.memory_reserved(0))
+
+        gpu_info = {
+            "device_name": torch.cuda.get_device_name(0),
+            "num_gpus": num_gpus,
+            "gpu_memory_total": gpu_memory_total,
+            "gpu_memory_allocated": gpu_memory_allocated,
+            "gpu_memory_cached": gpu_memory_cached,
+            "gpu_memory_free": format_memory(
+                torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0)
+            ),
+        }
     else:
-        gpu_info = {"gpu": False, "message": "No GPU available, using CPU"}
+        gpu_info = {}
 
     cpu_info = {
         "cpu_percent": psutil.cpu_percent(interval=1),
@@ -75,13 +103,13 @@ def check_gpu():
 
     memory_info = psutil.virtual_memory()
     memory_usage = {
-        "total_memory": memory_info.total / (1024**3),
-        "used_memory": memory_info.used / (1024**3),
-        "free_memory": memory_info.available / (1024**3),
+        "total_memory": format_memory(memory_info.total),
+        "used_memory": format_memory(memory_info.used),
+        "free_memory": format_memory(memory_info.available),
         "memory_percent": memory_info.percent,
     }
 
-    return {"gpu": gpu_info, "cpu": cpu_info, "memory": memory_usage}
+    return {"device": str(device), "gpu": gpu_info, "cpu": cpu_info, "memory": memory_usage}
 
 
 def save_geojson(json_data, output_geojson_path):
@@ -173,3 +201,13 @@ def date_minute_str():
         str: The current date and time formatted as YYYYMMDD_HHMM.
     """
     return datetime.now().strftime("%Y%m%d_%H%M")
+
+
+def get_timestamp():
+    """
+    Returns the current Unix timestamp as an integer (no decimals).
+
+    Returns:
+        int: The current Unix timestamp.
+    """
+    return int(datetime.now().timestamp())

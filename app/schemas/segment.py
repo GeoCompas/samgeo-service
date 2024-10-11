@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Tuple, Optional, Any, Dict
+from typing import List, Tuple, Optional, Any, Dict, Literal
 
 
 class SegmentRequestBase(BaseModel):
@@ -24,6 +24,9 @@ class SegmentRequestBase(BaseModel):
     action_type: str = Field(
         None,
         description="Type of action requested (e.g., single_point or multi_point segmentation), default is None",
+    )
+    return_format: Literal["geojson", "url"] = Field(
+        "geojson", description="Return format, must be 'geojson' or 'url'. Default is 'geojson'."
     )
 
     @field_validator("bbox", mode="before")
