@@ -74,7 +74,7 @@ def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
     id = request.id
     project = request.project
     action_type = request.action_type
-    return_format = return_format.return_format
+    return_format = request.return_format
 
     log.info(
         f"Processing segmentation for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}, action_type: {action_type}"
