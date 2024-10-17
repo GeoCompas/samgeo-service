@@ -10,6 +10,8 @@ from samgeo import tms_to_geotiff, choose_device
 from shapely.geometry import Polygon, MultiPolygon
 from utils.logger_config import log
 
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+
 
 def group_files_by_base_name(public_dir: str, base_url: str) -> list:
     """
@@ -211,3 +213,51 @@ def get_timestamp():
         int: The current Unix timestamp.
     """
     return int(datetime.now().timestamp())
+
+
+def base_files_names(project, id):
+    """
+    Generates base file names for the project and ID.
+    """
+
+    public_dir = f"public/{project}"
+    os.makedirs(public_dir, exist_ok=True)
+
+    # Date
+    date_time = get_timestamp()
+
+    # Files names
+    png_file_name = f"{id}.png"
+    json_file_name = f"{id}.json"
+    tif_file_name = f"{id}.tif"
+    mask_file_name = f"mask_{id}.tif"
+    geojson_file_name = f"{id}_{date_time}.geojson"
+    gpkg_file_name = f"{id}_{date_time}.gpkg"
+
+    # Files path to store in public dir
+    png_file_path = os.path.join(public_dir, png_file_name)
+    json_file_path = os.path.join(public_dir, json_file_name)
+    tif_file_path = os.path.join(public_dir, tif_file_name)
+    geojson_file_path = os.path.join(public_dir, geojson_file_name)
+    gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
+
+    # Files path to store in tmp dir
+    mask_file_path = os.path.join("/tmp", mask_file_name)
+
+    # URLs for accessing the files
+    png_file_url = f"{BASE_URL}/files/{project}/{png_file_name}"
+    tif_file_url = f"{BASE_URL}/files/{project}/{tif_file_name}"
+    geojson_file_url = f"{BASE_URL}/files/{project}/{geojson_file_name}"
+
+    # Returning all file paths and URLs
+    return (
+        png_file_path,
+        json_file_path,
+        tif_file_path,
+        mask_file_path,
+        geojson_file_path,
+        gpkg_file_path,
+        png_file_url,
+        tif_file_url,
+        geojson_file_url,
+    )
