@@ -8,6 +8,7 @@ from utils.utils import (
 )
 from schemas.segment import SegmentRequestBase, SegmentResponseBase
 from utils.logger_config import log
+from utils.utils import base_files_names
 
 # Initialize the SAM model
 device = choose_device()
@@ -35,32 +36,36 @@ sam2Predictor = SamGeo2(
 )
 
 
-def detect_automatic_sam2(bbox, zoom, id, project) -> SegmentResponseBase:
+
+def detect_automatic_sam2(request):
     """
     Detect objects automatically using SAM2 model based on the provided bounding box.
     """
-    date_time = get_timestamp()
-    tif_file_name = f"{id}.tif"
-    mask_file_name = f"tmp/mask_{id}.tif"
-    geojson_file_name = f"{id}_{date_time}.geojson"
-    gpkg_file_name = f"{id}_{date_time}.gpkg"
-    public_dir = f"public/{project}"
-    tif_file_path = os.path.join(public_dir, tif_file_name)
-    mask_file_path = mask_file_name
-    geojson_file_path = os.path.join(public_dir, geojson_file_name)
-    gpkg_file_path = os.path.join(public_dir, gpkg_file_name)
+    bbox = request.bbox
+    zoom = int(request.zoom)
+    id = request.id
+    project = request.project
+    return_format = request.return_format
 
-    try:
-        log.info(
-            f"Processing detection for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}"
-        )
-        sam2.generate(tif_file_path, output=mask_file_path)
-        sam2.raster_to_vector(mask_file_path, gpkg_file_path)
-        geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
-        return SegmentResponseBase(**geojson_data)
-    except Exception as e:
-        log.error(f"An error occurred during processing: {e}")
-        return {"error": str(e)}
+    date_time = get_timestamp()
+
+    tif_file_path, mask_file_path, geojson_file_path, gpkg_file_path, geojson_url = base_files_names(project, id)
+
+    log.info(tif_file_path, mask_file_path, geojson_file_path, gpkg_file_path, geojson_url)
+    return {
+        tif_file_path, mask_file_path, geojson_file_path, gpkg_file_path, geojson_url 
+    }
+    # try:
+    #     log.info(
+    #         f"Processing detection for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}"
+    #     )
+    #     sam2.generate(tif_file_path, output=mask_file_path)
+    #     sam2.raster_to_vector(mask_file_path, gpkg_file_path)
+    #     geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
+    #     return SegmentResponseBase(**geojson_data)
+    # except Exception as e:
+    #     log.error(f"An error occurred during processing: {e}")
+    #     return {"error": str(e)}
 
 
 def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
@@ -74,7 +79,7 @@ def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
     id = request.id
     project = request.project
     action_type = request.action_type
-    return_format = return_format.return_format
+    return_format = request.return_format
 
     log.info(
         f"Processing segmentation for bbox: {bbox}, zoom: {zoom}, id: {id}, project: {project}, action_type: {action_type}"

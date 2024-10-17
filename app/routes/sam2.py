@@ -13,17 +13,14 @@ router = APIRouter()
 @router.post(
     "/segment_automatic",
     tags=["Decoder"],
-    description="Segment the images using automatic options",
-    response_model=SegmentResponseBase,
+    description="Segment the images using automatic options"
+    # response_model=SegmentResponseBase,
 )
 async def automatic_detection(request: SegmentRequestBase):
     zoom_int = int(request.zoom)
     result = await asyncio.to_thread(
         detect_automatic_sam2,
-        bbox=request.bbox,
-        zoom=zoom_int,
-        id=request.id,
-        project=request.project,
+        request=request
     )
 
     # Check if an error occurred

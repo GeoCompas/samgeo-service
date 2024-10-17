@@ -1,0 +1,3 @@
+samgeo-api.geocompas.ai {
+  reverse_proxy http://samgeoapi:80
+}
