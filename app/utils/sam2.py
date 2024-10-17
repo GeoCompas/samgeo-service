@@ -9,6 +9,7 @@ from utils.utils import (
 from schemas.segment import SegmentRequestBase, SegmentResponseBase
 from utils.logger_config import log
 from utils.utils import base_files_names
+from utils.convert import read_simplify_and_filter_by_area
 
 # Initialize the SAM model
 device = choose_device()
@@ -46,6 +47,8 @@ def detect_automatic_sam2(request):
     id = request.id
     project = request.project
     return_format = request.return_format
+    simplify_tolerance= request.simplify_tolerance
+    area_val = request.area_val
 
     (
         _,
@@ -68,7 +71,8 @@ def detect_automatic_sam2(request):
         sam2.generate(tif_file_path, output=mask_file_path)
         sam2.raster_to_vector(mask_file_path, gpkg_file_path)
 
-        geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
+        # geojson_data = generate_geojson(gpkg_file_path, geojson_file_path)
+        geojson_data = read_simplify_and_filter_by_area(gpkg_file_path, None, simplify_tolerance, area_val, geojson_file_path )
 
         # Return response based on the requested format
         if return_format == "geojson":
@@ -94,6 +98,8 @@ def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
     project = request.project
     action_type = request.action_type
     return_format = request.return_format
+    simplify_tolerance= request.simplify_tolerance
+    area_val = request.area_val
 
     (
         _,
@@ -154,7 +160,8 @@ def detect_predictor_sam2(request: SegmentRequestBase) -> SegmentResponseBase:
             geojson_data["features"] = geojson_array
             save_geojson(geojson_data, geojson_file_path)
 
-        log.info(f"geojson_url: {geojson_file_url}")
+
+        geojson_data = read_simplify_and_filter_by_area(None, geojson_data, simplify_tolerance, area_val, geojson_file_path )
 
         # Return response based on the requested format
         if return_format == "geojson":
