@@ -29,6 +29,13 @@ class SegmentRequestBase(BaseModel):
         "geojson", description="Return format, must be 'geojson' or 'url'. Default is 'geojson'."
     )
 
+    simplify_tolerance: float = Field(
+        0.0, description="Simplification tolerance to simplify geometries. Default is 0.2."
+    )
+    area_val: float = Field(
+        0.0, description="Area threshold. Features with an area smaller than this value will not be returned. Default is 0."
+    )
+
     @field_validator("bbox", mode="before")
     def validate_bbox(cls, bbox):
         if len(bbox) != 4:

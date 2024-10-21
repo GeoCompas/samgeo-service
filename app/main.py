@@ -4,8 +4,8 @@ from fastapi.staticfiles import StaticFiles
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from routes.predictions import router as predictions_routes
-from routes.sam2 import router as sam2_routes
-from routes.aoi import router as aoi_routes
+from routes.decoder import router as decoder_routes
+from routes.encoder import router as encoder_routes
 
 from utils.utils import check_gpu
 from middleware import log_request_middleware
@@ -41,8 +41,8 @@ async def status():
     return result
 
 
-app.include_router(aoi_routes)
-app.include_router(sam2_routes)
+app.include_router(encoder_routes)
+app.include_router(decoder_routes)
 app.mount("/files", StaticFiles(directory="public"), name="public")
 app.include_router(predictions_routes)
 

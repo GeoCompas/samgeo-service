@@ -43,7 +43,7 @@ def list_files_in_project(project_id: str = ""):
                     "tif_url": None,
                 }
             detections[base_name]["geojson_files"] = [
-                f"{BASE_URL}files/{project_id}/{f.name}"
+                f"{BASE_URL}/files/{project_id}/{f.name}"
                 for f in public_dir.iterdir()
                 if f.suffix == ".geojson" and base_name in f.stem
             ]
