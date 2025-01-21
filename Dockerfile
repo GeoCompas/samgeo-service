@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libopengl0
 
 WORKDIR /app
+RUN mkdir -p public tmp
 
 COPY ./app/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --root-user-action=ignore -r /app/requirements.txt
