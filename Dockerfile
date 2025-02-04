@@ -1,4 +1,4 @@
-FROM giswqs/segment-geospatial:v0.11.0
+FROM giswqs/segment-geospatial:v0.12.2
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="${PATH}:/home/user/.local/bin"
 ENV LANG C.UTF-8
